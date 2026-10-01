@@ -25,3 +25,4 @@ typing_extensions==4.16.0
 tzdata==2026.4
 wheel==0.47.0
 wrapt==2.5.0
+ipykernel==7.4.0
