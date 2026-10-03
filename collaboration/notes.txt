@@ -1,1 +1,23 @@
 Notes 3 October
+
+Delegation of duties:
+Bobby preprocess?
+Make models - GG
+Testing of models - KR
+
+Theory of organization
+Push scripts to git
+Keep notebooks local
+
+Bigrams?
+
+Everyone work together on elements of preprocessing
+Begin from data_eng.csv
+1500 for model, 500 for test
+all analysis occurs on the same preprocessed sets
+
+bag of words text cleaning and characterization - kevin
+overleaf structuring -kevin
+GG - modelling career begins
+
+Due data is 23rd October
