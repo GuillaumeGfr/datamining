@@ -1,17 +1,3 @@
-# ---
-# jupyter:
-#   jupytext:
-#     text_representation:
-#       extension: .py
-#       format_name: percent
-#       format_version: '1.3'
-#       jupytext_version: 1.19.6
-#   kernelspec:
-#     display_name: datamining
-#     language: python
-#     name: python3
-# ---
-
 # %%
 # SECTION 
 # testing bag of words cleaning and characterization. Consider: bigrams, lowercase, lemitization (room/rooms), sparse terms
