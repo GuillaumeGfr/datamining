@@ -1,3 +1,17 @@
+Notes October 8th
+Preprocessing questions:
+Saying city names or hotel names in the review, numbers, etc. How do we know which choices are within scope? Lemitization?
+As long as we can make an argument it's ok. Lemitization is a good idea (AF) but if we don't want to just justify. Bigrams optional.
+Hyperparameters: not many more than were mentioned in the assignment. No reason to go above and beyond.
+Reproducible (grid search for example is doable, he might suggest)
+
+Notes October 7th
+Think about hyperparamaters and what they mean.
+Rough draft of sections on pre-processing
+
+GG working on cross validation
+BZ test perfromance of the models and macnamara? 
+
 Notes 3 October
 
 Delegation of duties:
