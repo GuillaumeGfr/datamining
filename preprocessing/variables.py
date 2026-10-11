@@ -5,19 +5,23 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
+from scipy.sparse import csr_matrix, hstack
 from sklearn.model_selection import train_test_split
 
 DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "data_eng.csv"
 RANDOM_STATE = 42
 TEST_SIZE = 0.25
-REMOVE_NAMES = True   # drop each review's own hotel and city name from the text
+REMOVE_NAMES = False  # False: hotel and city names stay in the review text
 
+# bag-of-words settings, one place to change them for all five models
+# no lemmatization or stemming: word forms ("rooms", "stayed") differ between human and AI
 BOW_PARAMS = {
+
     "lowercase": True,
     "stop_words": None,                 # keeps "the", "was", "very"
-    "min_df": 5,                        # sparse-term removal
-    "ngram_range": (1, 1),              # (1, 2) adds bigrams
-    "token_pattern": r"(?u)\b\w\w+\b",  # keeps numbers (human signal)
+    "min_df": 5,                        # sparse-term removal, applies to every n-gram
+    "ngram_range": (1, 3),              # unigrams + bigrams + trigrams; (1, 2) = up to bigrams
+    "token_pattern": r"(?u)\b\w\w+\b|[.,!?:;()'\"-]",  # words, numbers (human signal) and punctuation marks
 }
 
 # 1. load English reviews (data_eng.csv = all_data.csv filtered on Review_Language)
@@ -36,7 +40,8 @@ if REMOVE_NAMES:
 df["text"] = df["text"].str.replace(r"\s+", " ", regex=True).str.strip()
 df["n_words"] = df["text"].str.split().str.len()
 
-# 4. stratified 75/25 split, whole rows kept so Sentiment is available for question 3
+# 4. 75/25 split stratified on source x Sentiment: 375 per group in train, 125 in test
+#    whole rows kept, so Hotel Name, City Name and Sentiment stay in train_df and test_df
 strata = df["source"].astype(str) + "_" + df["Sentiment"]
 train_df, test_df = train_test_split(
     df, test_size=TEST_SIZE, stratify=strata, random_state=RANDOM_STATE
@@ -46,19 +51,30 @@ y_test = test_df["source"]
 
 # 5. bag of words: vocabulary from training text only
 vectorizer = CountVectorizer(**BOW_PARAMS)
-X_train = vectorizer.fit_transform(train_df["text"])
-X_test = vectorizer.transform(test_df["text"])
-vocab = vectorizer.get_feature_names_out()
+X_train_words = vectorizer.fit_transform(train_df["text"])
+X_test_words = vectorizer.transform(test_df["text"])
+vocab_words = vectorizer.get_feature_names_out()
 
-# 6. word totals per class in the training set (Kevin's characterization)
+# 5b. extra columns: one 0/1 column per hotel and per city, from the Hotel Name / City Name columns
+#     categories taken from the training set; test uses the same columns in the same order
+name_train = pd.get_dummies(train_df[["Hotel Name", "City Name"]], prefix=["hotel", "city"], prefix_sep="=", dtype=int)
+name_test = pd.get_dummies(test_df[["Hotel Name", "City Name"]], prefix=["hotel", "city"], prefix_sep="=", dtype=int)
+name_test = name_test.reindex(columns=name_train.columns, fill_value=0)
+name_cols = name_train.columns.to_numpy()
+
+# 5c. final matrices: word columns first, then hotel and city columns
+X_train = hstack([X_train_words, csr_matrix(name_train.values)]).tocsr()
+X_test = hstack([X_test_words, csr_matrix(name_test.values)]).tocsr()
+vocab = np.concatenate([vocab_words, name_cols])
+
+# 6. word totals per class in the training set
 counts = pd.DataFrame({
     "human": np.asarray(X_train[y_train.values == 0].sum(axis=0)).ravel(),
     "ai": np.asarray(X_train[y_train.values == 1].sum(axis=0)).ravel(),
 }, index=vocab)
 nums = [w for w in vocab if w.isdigit()]
 
-# 7 Quick validation split of the training set (1200 / 300), for tinkering only
-
+# 7. quick validation split of the training set (1200 / 300), for tinkering only
 X_tr, X_val, y_tr, y_val = train_test_split(
-X_train, y_train, test_size=0.2, stratify=y_train, random_state=0
+    X_train, y_train, test_size=0.2, stratify=y_train, random_state=0
 )
