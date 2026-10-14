@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .DS_Store
+preprocessing/preprocessing_test.ipynb
+preprocessing/tree.json
+preprocessing/rf_grid.pdf
