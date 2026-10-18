@@ -1,8 +1,6 @@
 # %%
 # Kevin version of code for running models on test data
-# at each save run jupytext --sync run_models_kr.ipynb
-
-# FIXME Claude dump
+# at each save run jupytext --to py:percent your_notebook.ipynb
 
 # %%
 # Fake review detection: train and evaluate all models
@@ -24,18 +22,19 @@ from data_prep import load_reviews, make_split
 from models import MODELS
 from evaluate import evaluate, mcnemar
 
-## 1. Data and stratified 75/25 split
+## 1. DATA AND STRATIFIED 75/25 SPLIT
 # these are the first pass pre-processing steps
-df = load_reviews("../data/all_data.csv")
+df = load_reviews("../data/data_eng.csv")
 train_df, test_df = make_split(df)
 
 X_train, y_train = train_df["text"], train_df["label"].values
 X_test,  y_test  = test_df["text"],  test_df["label"].values
 
+# should be 1500/500 and and .5 human/ai
 print(f"train: {len(train_df)}  test: {len(test_df)}")
 print("AI share train/test:", y_train.mean().round(3), y_test.mean().round(3))
 
-## 2. Train every model (hyperparameters tuned on the training set only)
+## 2. TRAIN EVERY MODEL (hyperparameters tuned on the training set only)
 # Set `RETRAIN = False` to load the saved models instead of tuning again. 
 # Run it once with RETRAIN = True, then switch to False while working on evaluation 
 #   or feature importance. Switch back to True whenever anything changes in models.py or data_prep.py. 
@@ -48,18 +47,21 @@ SAVE_DIR.mkdir(exist_ok=True)
 # fitted will hold trained models, tuning_info holds selected hyperparameters and validation scores
 fitted, tuning_info = {}, {}
 
+# name is the display name, train_fn is the function itself
 for name, train_fn in MODELS.items():
     path = SAVE_DIR / f"{train_fn.__name__}.joblib"
     if RETRAIN or not path.exists():
         print(f"Training {name}...")
+        # cross validated tuning plus final refitand return model and tuning details. both saved to disk.
         model, info = train_fn(X_train, y_train)
         joblib.dump((model, info), path)
     else:
         model, info = joblib.load(path)
     fitted[name], tuning_info[name] = model, info
+    # displays hyperparameters
     print(f"  {name}: {info['best_params']}")
 
-## 3. Evaluate on the test set: run every trained model on test set and store predictions
+## 3. EVALUATE ON THE TEST SET: RUN EVERY TRAINED MODEL ON TEST SET AND STORE PREDICTIONS
 predictions = {name: model.predict(X_test) for name, model in fitted.items()}
 # this is equivalant to code below. By storing we avoid calling predict multiple times and ensures
 #   that McNemar step uses same prediction.
@@ -73,7 +75,7 @@ results = pd.DataFrame({name: evaluate(y_test, pred) for name, pred in predictio
 results.round(3)
 # this might work to make it table for report results.round(3).to_latex()
 
-## 4. McNemar tests (alpha = 0.01)
+## 4. McNemar TESTS (alpha = 0.01)
 # run McNemar test on each of the pairs below to compare accuracy for statistical significance.
 comparisons = [
     ("Naive Bayes", "Logistic (Lasso)"),        # relevant question 1, generative vs. descriminative linear
