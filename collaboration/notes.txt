@@ -1,9 +1,36 @@
+Notes October 11th
+How do we determine what a high and low alpha is? We can see what performs best but have no idea if it's a generally low or high value?
+
+what is relationship between k-values, lambda, sparse terms? what is order?
+sparse terms mind_df(5) for example, is a preliminary step. need to keep this constant! what feeds the model in the first place
+lambda is only for regression
+
+alpha is a smoothing coefficient for naive bayes
+complexity parameter for tree is alpha 
+follow the bullets on page 2 is simplest approach.
+
+look for studies that justify our decisions. 
+
+everything is in GG's preprocessing but will make py for all cross validation and function for each model.
+
+TODO:
+
+need to start writing the report and comparing the different methods
+GG is finishing model for gradient boosting
+KR need to start the code for testing - calling the functions, applying to test set.
+BZ Justification
+Look into accuracy, precision, recall, and F1 score.
+
+---
+
 Notes October 8th
 Preprocessing questions:
 Saying city names or hotel names in the review, numbers, etc. How do we know which choices are within scope? Lemitization?
 As long as we can make an argument it's ok. Lemitization is a good idea (AF) but if we don't want to just justify. Bigrams optional.
 Hyperparameters: not many more than were mentioned in the assignment. No reason to go above and beyond.
 Reproducible (grid search for example is doable, he might suggest)
+
+---
 
 Notes October 7th
 Think about hyperparamaters and what they mean.
